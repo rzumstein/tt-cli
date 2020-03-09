@@ -1,15 +1,14 @@
-import xml.etree.ElementTree as ET
-
 from api.core import make_request
 
-def get_active_project_worktypes(active=True):
-	data = make_request('projectworktype/?active=1')
+def get_project_worktypes(project_id, active=1):
+	data = make_request(
+		'projectworktype/?projectid={0}&active={1}'
+		.format(project_id, active)
+	)
 	worktypes = []
 	for worktype in data.find('projectworktype').findall('item'):
 		worktypes.append({
-			'id': worktype.find('id').text,
-			'projectid': worktype.find('projectid').text,
-			'worktypeid': worktype.find('worktypeid').text,
-			'worktype': worktype.find('worktype').text
+			'id': worktype.find('worktypeid').text,
+			'name': worktype.find('worktype').text
 		})
-	print(list(data))
+	return worktypes
