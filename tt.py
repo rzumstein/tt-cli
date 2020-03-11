@@ -3,8 +3,13 @@
 import argparse
 import logging
 import os
+import subprocess
+import sys
+import termgraph
 
+from collections import defaultdict
 from dotenv import load_dotenv
+from math import floor
 
 from api.projectmodule import get_project_modules
 from api.project import get_projects
@@ -62,30 +67,36 @@ time_parser.add_argument('-b', '--billable', action='store_true', help='billable
 args = main_parser.parse_args()
 print('args: {0}'.format(args))
 
+command = None
 try:
 	if args.get:
-		time_entries = get_time()
-		for time_entry in time_entries:
-			print('Date: {0}'.format(time_entry['date']))
-			print('Time: {0}h'.format(time_entry['time']))
-			print('Description: {0}'.format(time_entry['description']))
-			print('----\n')
-
-	if args.add:
-		project_id = get_project_id_from_user()
-		module_id = get_project_module_id_from_user(project_id)
-		worktype_id = get_project_worktype_id_from_user(project_id)
-		date = args.date if args.date else input('\nDate (yyyy-mm-dd): ')
-		time = args.time if args.time else input('\nTime (h): ')
-		print()
-		description = input('Description: ')
-		while len(description) > 255:
-			print('\nDescription must be 255 characters or fewer.\n')
-			description = input('Description: ')
-		print()
-		if add_time(project_id, module_id, worktype_id, date, time, args.billable, description):
-			print('Added {0} hours of time on {1}'.format(time, date))
-		else:
-			print('Failed adding time. See log for more details')
-except AttributeError:
+		command = 'get'
+	elif args.add:
+		command = 'add'
+except AttributeError as e:
+	print(e)
 	time_parser.print_help()
+
+if command == 'get':
+	time_entries = defaultdict(list)
+	for time_entry in get_time():
+		time_entries[time_entry['date']].append(time_entry['time'])
+	for date, times in time_entries.items():
+		time = sum(list(map(float, times)))
+		print('{0}: {1} {2}'.format(date, '▇' * floor(time), time))
+elif command == 'add':
+	project_id = get_project_id_from_user()
+	module_id = get_project_module_id_from_user(project_id)
+	worktype_id = get_project_worktype_id_from_user(project_id)
+	date = args.date if args.date else input('\nDate (yyyy-mm-dd): ')
+	time = args.time if args.time else input('\nTime (h): ')
+	print()
+	description = input('Description: ')
+	while len(description) > 255:
+		print('\nDescription must be 255 characters or fewer.\n')
+		description = input('Description: ')
+	print()
+	if add_time(project_id, module_id, worktype_id, date, time, args.billable, description):
+		print('Added {0} hours of time on {1}'.format(time, date))
+	else:
+		print('Failed adding time. See log for more details')
