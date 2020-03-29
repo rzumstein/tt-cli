@@ -18,11 +18,11 @@ from api.time import add_time, get_time
 
 load_dotenv()
 
-logging.basicConfig(filename='tt.log', filemode='w+', level=int(os.getenv('LOG_LEVEL')))
+logging.basicConfig(filename='../tt.log', filemode='w+', level=int(os.getenv('LOG_LEVEL')))
 
 def log_exception(type, value, tb):
-    logging.exception('Uncaught exception: {0}'.format(str(value)))
-    print(str(value))
+	logging.exception('Uncaught exception: {0}'.format(str(value)))
+	print(str(e))
 
 def display_options_to_user(title, opts):
 	print('\n{0}\n{1}'.format(title, '-' * len(title)))
@@ -65,7 +65,6 @@ time_parser.add_argument('-t', '--time', nargs='?', help='time (hours)')
 time_parser.add_argument('-b', '--billable', action='store_true', help='billable')
 
 args = main_parser.parse_args()
-print('args: {0}'.format(args))
 
 command = None
 try:
@@ -74,7 +73,7 @@ try:
 	elif args.add:
 		command = 'add'
 except AttributeError as e:
-	print(e)
+	print(str(e))
 	time_parser.print_help()
 
 if command == 'get':
